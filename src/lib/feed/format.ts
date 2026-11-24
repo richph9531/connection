@@ -13,6 +13,7 @@ export function formatPostTime(
   now: Date = new Date(),
 ): string {
   const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return "";
   const day = todayIn(timeZone, then);
   const today = todayIn(timeZone, now);
   const time = new Intl.DateTimeFormat("en-GB", {

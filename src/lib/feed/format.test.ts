@@ -19,6 +19,11 @@ describe("formatPostTime", () => {
     expect(formatPostTime("2025-12-31T12:00:00Z", "UTC", now)).toBe("31 Dec 2025");
   });
 
+  it("returns an empty label instead of crashing on timestamps JavaScript can't represent", () => {
+    expect(formatPostTime("infinity", "UTC", now)).toBe("");
+    expect(formatPostTime("294276-01-01T00:00:00+00:00", "UTC", now)).toBe("");
+  });
+
   it("handles yesterday across a month boundary", () => {
     expect(formatPostTime("2026-11-30T10:00:00Z", "UTC", new Date("2026-12-01T09:00:00Z"))).toBe("Yesterday at 10:00");
   });
