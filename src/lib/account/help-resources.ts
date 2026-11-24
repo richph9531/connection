@@ -16,7 +16,7 @@ export type HelpResource = {
 export const EMERGENCY_NUMBERS: { region: string; number: string }[] = [
   { region: "Police (South Africa)", number: "10111" },
   { region: "Ambulance (South Africa)", number: "10177" },
-  { region: "Any emergency from a mobile phone", number: "112" },
+  { region: "Any emergency from a mobile phone (South Africa)", number: "112" },
 ];
 
 export const CRISIS_RESOURCES: HelpResource[] = [
