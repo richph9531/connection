@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { joinAsNewMember, uniqueEmail } from "./helpers";
+import { joinAsNewMember, startJoining, uniqueEmail } from "./helpers";
 
 test("public pages are reachable and protected pages redirect to login", async ({ page }) => {
   await page.goto("/");
@@ -24,4 +24,23 @@ test("a new member can join with an invite, onboard and log out", async ({ page 
   await expect(page.getByRole("link", { name: "Moderation" })).toHaveCount(0);
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/127\.0\.0\.1:3000\/$/);
+});
+
+test("onboarding keeps the chosen date and time zone when the name is taken", async ({ browser, page }) => {
+  const other = await browser.newPage();
+  const { displayName } = await joinAsNewMember(other);
+  await other.close();
+
+  await startJoining(page);
+  await page.getByLabel("Display name").fill(displayName);
+  await page.getByLabel("When did your current recovery start?").fill("2026-01-15");
+  await page.getByLabel("Your time zone").selectOption("Africa/Johannesburg");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("That name is already taken")).toBeVisible();
+  await expect(page.getByLabel("When did your current recovery start?")).toHaveValue("2026-01-15");
+  await expect(page.getByLabel("Your time zone")).toHaveValue("Africa/Johannesburg");
+
+  await page.getByLabel("Display name").fill(`${displayName} 2`);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page).toHaveURL(/\/checkin/);
 });

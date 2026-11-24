@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { todayIn } from "./dates";
 import { displayNameSchema, loginSchema, onboardingSchema } from "./validation";
 
 describe("loginSchema", () => {
@@ -34,5 +35,19 @@ describe("onboardingSchema", () => {
       timezone: "UTC",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("allows today in the member's time zone even when UTC is still yesterday", () => {
+    const today = todayIn("Pacific/Kiritimati");
+    expect(
+      onboardingSchema.safeParse({ displayName: "Steady", recoveryStartDate: today, timezone: "Pacific/Kiritimati" }).success,
+    ).toBe(true);
+  });
+
+  it("rejects unknown time zones", () => {
+    expect(
+      onboardingSchema.safeParse({ displayName: "Steady", recoveryStartDate: "2020-01-01", timezone: "Mars/Olympus" })
+        .success,
+    ).toBe(false);
   });
 });

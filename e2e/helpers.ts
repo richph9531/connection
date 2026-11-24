@@ -36,6 +36,15 @@ export async function getMagicLink(email: string): Promise<string> {
 
 /** Joins with a fresh invite and completes onboarding. Returns the display name. */
 export async function joinAsNewMember(page: Page, displayName = `Member ${Date.now() % 1e6}`) {
+  const email = await startJoining(page);
+  await page.getByLabel("Display name").fill(displayName);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page).toHaveURL(/\/checkin/);
+  return { email, displayName };
+}
+
+/** Joins with a fresh invite and stops on the onboarding page. */
+export async function startJoining(page: Page) {
   const email = uniqueEmail();
   const inviteCode = await createInvite();
   await page.goto("/login?mode=join");
@@ -45,8 +54,5 @@ export async function joinAsNewMember(page: Page, displayName = `Member ${Date.n
   await expect(page.getByRole("status")).toContainText("Check your email");
   await page.goto(await getMagicLink(email));
   await expect(page).toHaveURL(/\/onboarding/);
-  await page.getByLabel("Display name").fill(displayName);
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page).toHaveURL(/\/checkin/);
-  return { email, displayName };
+  return email;
 }

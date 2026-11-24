@@ -4,15 +4,17 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { onboardingSchema } from "@/lib/validation";
 
-export type OnboardingState = { message?: string };
+type OnboardingValues = { displayName: string; recoveryStartDate: string; timezone: string };
+export type OnboardingState = { message?: string; values?: OnboardingValues };
 
 export async function completeOnboarding(_prev: OnboardingState, formData: FormData): Promise<OnboardingState> {
-  const parsed = onboardingSchema.safeParse({
-    displayName: formData.get("displayName"),
-    recoveryStartDate: formData.get("recoveryStartDate"),
-    timezone: formData.get("timezone") || undefined,
-  });
-  if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  const values: OnboardingValues = {
+    displayName: String(formData.get("displayName") ?? ""),
+    recoveryStartDate: String(formData.get("recoveryStartDate") ?? ""),
+    timezone: String(formData.get("timezone") || "UTC"),
+  };
+  const parsed = onboardingSchema.safeParse(values);
+  if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Please check the form.", values };
 
   const supabase = await createClient();
   const {
@@ -29,7 +31,7 @@ export async function completeOnboarding(_prev: OnboardingState, formData: FormD
     })
     .eq("id", user.id);
 
-  if (error?.code === "23505") return { message: "That name is already taken. Please choose another." };
-  if (error) return { message: "Something went wrong. Please try again." };
+  if (error?.code === "23505") return { message: "That name is already taken. Please choose another.", values };
+  if (error) return { message: "Something went wrong. Please try again.", values };
   redirect("/checkin");
 }

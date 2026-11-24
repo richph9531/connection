@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidTimeZone, todayIn } from "./dates";
 
 export const emailSchema = z.string().trim().toLowerCase().email("Please enter a valid email address.");
 
@@ -22,11 +23,13 @@ export const displayNameSchema = z
     "Use 3–30 letters, numbers, spaces, dots, dashes or underscores.",
   );
 
-export const onboardingSchema = z.object({
-  displayName: displayNameSchema,
-  recoveryStartDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date.")
-    .refine((value) => new Date(`${value}T00:00:00Z`) <= new Date(), "The date can't be in the future."),
-  timezone: z.string().trim().min(1).max(64).default("UTC"),
-});
+export const onboardingSchema = z
+  .object({
+    displayName: displayNameSchema,
+    recoveryStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date."),
+    timezone: z.string().trim().min(1).max(64).refine(isValidTimeZone, "Please choose a time zone."),
+  })
+  .refine((data) => !isValidTimeZone(data.timezone) || data.recoveryStartDate <= todayIn(data.timezone), {
+    message: "The date can't be in the future.",
+    path: ["recoveryStartDate"],
+  });
