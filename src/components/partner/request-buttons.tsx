@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { endPartnership, respondToRequest, type PartnerActionState } from "@/app/(app)/partner/actions";
+import { cancelRequest, respondToRequest, type PartnerActionState } from "@/app/(app)/partner/actions";
 import { Button } from "@/components/ui/button";
 
 const idle: PartnerActionState = { status: "idle" };
@@ -41,11 +41,11 @@ export function RespondButtons({ partnershipId, name }: { partnershipId: string;
   );
 }
 
-export function CancelRequestButton({ otherId, name }: { otherId: string; name: string }) {
-  const [state, formAction, pending] = useActionState(endPartnership, idle);
+export function CancelRequestButton({ partnershipId, name }: { partnershipId: string; name: string }) {
+  const [state, formAction, pending] = useActionState(cancelRequest, idle);
   return (
     <form action={formAction} className="flex flex-col gap-2">
-      <input type="hidden" name="otherId" value={otherId} />
+      <input type="hidden" name="partnershipId" value={partnershipId} />
       <Button type="submit" variant="ghost" size="sm" disabled={pending} aria-label={`Cancel request to ${name}`}>
         Cancel request
       </Button>

@@ -62,7 +62,7 @@ export default async function PartnerPage() {
                   <p className="min-w-0 text-sm">
                     Waiting for <span className="font-medium break-words">{request.otherName}</span> to answer.
                   </p>
-                  <CancelRequestButton otherId={request.otherId} name={request.otherName} />
+                  <CancelRequestButton partnershipId={request.id} name={request.otherName} />
                 </li>
               ))}
             </ul>

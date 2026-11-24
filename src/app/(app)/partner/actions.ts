@@ -74,6 +74,24 @@ export async function respondToRequest(_prev: PartnerActionState, formData: Form
   return { status: "success" };
 }
 
+export async function cancelRequest(_prev: PartnerActionState, formData: FormData): Promise<PartnerActionState> {
+  const id = idSchema.safeParse(formData.get("partnershipId"));
+  if (!id.success) return failure(REQUEST_MESSAGES.error);
+
+  const { supabase, me } = await signedIn();
+  const { data, error } = await supabase
+    .from("partnerships")
+    .update({ status: "ended" })
+    .eq("id", id.data)
+    .eq("requester_id", me)
+    .eq("status", "pending")
+    .select("id");
+  if (error) return failure(REQUEST_MESSAGES.error);
+  revalidatePath("/partner");
+  if (!data?.length) return failure("This request was already answered. Refresh to see the latest.");
+  return { status: "success" };
+}
+
 /** Ends every open partnership (or pending request) between the member and another member. */
 export async function endPartnership(_prev: PartnerActionState, formData: FormData): Promise<PartnerActionState> {
   const other = idSchema.safeParse(formData.get("otherId"));
