@@ -35,6 +35,8 @@ describe("milestoneToOffer", () => {
       days: 7,
       shared: false,
     });
+    expect(dismissed).not.toContain("member-a");
+    expect(dismissed).not.toContain("2026-11-01");
     expect(milestoneToOffer({ ...base, userId: "member-b", streak: 9, dismissed })).toEqual({ days: 7, shared: false });
   });
 });

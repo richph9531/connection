@@ -1,9 +1,11 @@
+import { createHash } from "node:crypto";
+
 import { latestMilestone, sharedInCurrentStreak } from "./streak";
 
 export const DISMISS_COOKIE = "connection-milestone-dismissed";
 
 export function dismissKey(userId: string, recoveryStartDate: string, days: number): string {
-  return `${userId}:${recoveryStartDate}:${days}`;
+  return createHash("sha256").update(`${userId}:${recoveryStartDate}:${days}`).digest("base64url");
 }
 
 /**
