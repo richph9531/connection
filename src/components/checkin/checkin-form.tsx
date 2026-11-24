@@ -23,12 +23,21 @@ const EMPTY: CheckInFormValues = {
 const choice =
   "flex cursor-pointer items-center justify-center rounded-lg border border-input bg-background text-sm font-medium transition-colors select-none hover:bg-muted has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground has-checked:hover:bg-primary/90 has-focus-visible:ring-3 has-focus-visible:ring-ring/50";
 
-export function CheckInForm({ action, initial }: { action: Action; initial: CheckInFormValues | null }) {
+export function CheckInForm({
+  action,
+  date,
+  initial,
+}: {
+  action: Action;
+  date: string;
+  initial: CheckInFormValues | null;
+}) {
   const [state, formAction, pending] = useActionState(action, {});
   const isUpdate = Boolean(initial) || state.status === "saved";
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
+      <input type="hidden" name="date" value={date} />
       {/* Remount after each submission so the fields show what was just sent, even after React resets the form. */}
       <CheckInFields key={state.submittedAt ?? 0} initial={state.values ?? initial ?? EMPTY} />
       {state.status === "error" && state.message && (

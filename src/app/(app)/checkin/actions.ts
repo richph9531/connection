@@ -37,10 +37,19 @@ export async function saveCheckIn(_prev: CheckInState, formData: FormData): Prom
   }
 
   const { supabase, user, profile } = await currentMember();
+  const today = todayIn(profile.timezone);
+  if (formData.get("date") !== today) {
+    return {
+      status: "error",
+      message: "A new day has started since you opened this page. Please refresh to check in for today.",
+      values,
+      submittedAt,
+    };
+  }
   const { error } = await supabase.from("check_ins").upsert(
     {
       user_id: user.id,
-      date: todayIn(profile.timezone),
+      date: today,
       clean: result.data.clean,
       mood: result.data.mood,
       urge_level: result.data.urgeLevel,
