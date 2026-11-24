@@ -24,6 +24,14 @@ export function seedMemberContent(userId: string, note: string) {
   );
 }
 
+/** Adds one check-in per day for the given number of past days (more than the API returns in one page). */
+export function seedPastCheckIns(userId: string, days: number) {
+  sql(
+    `insert into public.check_ins (user_id, date, clean, mood, urge_level)
+     select '${userId}', current_date - d, true, 3, 1 from generate_series(1, ${days}) as d`,
+  );
+}
+
 export function countMemberRows(userId: string): number {
   return Number(
     sql(`select (select count(*) from auth.users where id = '${userId}')

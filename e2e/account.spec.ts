@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { countMemberRows, seedMemberContent, userIdFor } from "./account-helpers";
+import { countMemberRows, seedMemberContent, seedPastCheckIns, userIdFor } from "./account-helpers";
 import { joinAsNewMember } from "./helpers";
 
 test.use({ viewport: { width: 375, height: 812 } });
@@ -26,6 +26,7 @@ test("a member can download their data and then delete their account", async ({ 
   const { email, displayName } = await joinAsNewMember(page);
   const userId = userIdFor(email);
   seedMemberContent(userId, "my private note");
+  seedPastCheckIns(userId, 1200);
 
   await page.getByRole("link", { name: "Account" }).click();
   await expect(page.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
@@ -39,8 +40,8 @@ test("a member can download their data and then delete their account", async ({ 
   const exported = JSON.parse(await readFile((await download.path())!, "utf8"));
   expect(exported.profile.display_name).toBe(displayName);
   expect(exported.account.email).toBe(email);
-  expect(exported.check_ins).toHaveLength(1);
-  expect(exported.check_ins[0].note).toBe("my private note");
+  expect(exported.check_ins).toHaveLength(1201);
+  expect(exported.check_ins.at(-1).note).toBe("my private note");
   expect(exported.posts.map((p: { body: string }) => p.body)).toEqual(["Grateful for this group"]);
   expect(exported.comments).toHaveLength(1);
   expect(JSON.stringify(exported)).not.toContain("someone else's note");

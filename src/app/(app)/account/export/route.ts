@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildMemberExport, exportFileName } from "@/lib/account/export";
+import { fetchAllPages } from "@/lib/account/paginate";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +19,32 @@ export async function GET() {
       .select("display_name, role, recovery_start_date, longest_streak, timezone, created_at")
       .eq("id", user.id)
       .single(),
-    supabase
-      .from("check_ins")
-      .select("date, clean, mood, urge_level, triggers, note, share_with_partner, created_at, updated_at")
-      .eq("user_id", user.id),
-    supabase.from("posts").select("id, body, milestone_days, created_at, removed_at").eq("author_id", user.id),
-    supabase.from("comments").select("id, post_id, body, created_at, removed_at").eq("author_id", user.id),
+    fetchAllPages((from, to) =>
+      supabase
+        .from("check_ins")
+        .select("date, clean, mood, urge_level, triggers, note, share_with_partner, created_at, updated_at")
+        .eq("user_id", user.id)
+        .order("date")
+        .range(from, to),
+    ),
+    fetchAllPages((from, to) =>
+      supabase
+        .from("posts")
+        .select("id, body, milestone_days, created_at, removed_at")
+        .eq("author_id", user.id)
+        .order("created_at")
+        .order("id")
+        .range(from, to),
+    ),
+    fetchAllPages((from, to) =>
+      supabase
+        .from("comments")
+        .select("id, post_id, body, created_at, removed_at")
+        .eq("author_id", user.id)
+        .order("created_at")
+        .order("id")
+        .range(from, to),
+    ),
   ]);
 
   if (profile.error || checkIns.error || posts.error || comments.error) {
