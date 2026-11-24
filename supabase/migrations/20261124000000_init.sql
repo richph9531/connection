@@ -107,6 +107,12 @@ language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
 $$;
 
+-- True while the signed-in user still has a member profile (false after account deletion).
+create function public.is_member() returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.profiles where id = auth.uid());
+$$;
+
 create function public.is_active_partner(other uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (
@@ -248,7 +254,8 @@ create trigger check_ins_touch_updated_at
 
 -- Display names visible to all signed-in members (no private fields).
 create view public.member_directory as
-  select id, display_name, role from public.profiles where display_name is not null;
+  select id, display_name, role from public.profiles
+  where display_name is not null and public.is_member();
 
 -- Privileges -----------------------------------------------------------------
 
@@ -256,7 +263,7 @@ revoke all on all tables in schema public from anon;
 revoke execute on all functions in schema public from anon, public;
 grant execute on function public.check_invite(text) to anon, authenticated;
 grant execute on function
-  public.is_moderator(), public.is_admin(), public.is_active_partner(uuid),
+  public.is_member(), public.is_moderator(), public.is_admin(), public.is_active_partner(uuid),
   public.set_member_role(uuid, public.member_role),
   public.set_post_removed(uuid, boolean), public.set_comment_removed(uuid, boolean),
   public.partner_check_ins(uuid, date), public.delete_my_account()
@@ -303,7 +310,7 @@ create policy "Own check-ins" on public.check_ins for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 create policy "Read visible posts" on public.posts for select to authenticated
-  using (removed_at is null or author_id = auth.uid() or public.is_moderator());
+  using (public.is_member() and (removed_at is null or author_id = auth.uid() or public.is_moderator()));
 create policy "Create own posts" on public.posts for insert to authenticated
   with check (author_id = auth.uid() and removed_at is null and removed_by is null);
 create policy "Edit own posts" on public.posts for update to authenticated
@@ -311,18 +318,29 @@ create policy "Edit own posts" on public.posts for update to authenticated
 create policy "Delete own posts" on public.posts for delete to authenticated
   using (author_id = auth.uid());
 
+-- Comments and reactions are only visible on posts the reader can see.
 create policy "Read visible comments" on public.comments for select to authenticated
-  using (removed_at is null or author_id = auth.uid() or public.is_moderator());
+  using (
+    (removed_at is null or author_id = auth.uid() or public.is_moderator())
+    and exists (select 1 from public.posts p where p.id = post_id)
+  );
 create policy "Create own comments" on public.comments for insert to authenticated
-  with check (author_id = auth.uid() and removed_at is null and removed_by is null);
+  with check (
+    author_id = auth.uid() and removed_at is null and removed_by is null
+    and exists (select 1 from public.posts p where p.id = post_id and p.removed_at is null)
+  );
 create policy "Edit own comments" on public.comments for update to authenticated
   using (author_id = auth.uid()) with check (author_id = auth.uid());
 create policy "Delete own comments" on public.comments for delete to authenticated
   using (author_id = auth.uid());
 
-create policy "Read reactions" on public.reactions for select to authenticated using (true);
+create policy "Read reactions" on public.reactions for select to authenticated
+  using (exists (select 1 from public.posts p where p.id = post_id));
 create policy "Add own reactions" on public.reactions for insert to authenticated
-  with check (user_id = auth.uid());
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.posts p where p.id = post_id and p.removed_at is null)
+  );
 create policy "Remove own reactions" on public.reactions for delete to authenticated
   using (user_id = auth.uid());
 
