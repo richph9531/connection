@@ -12,10 +12,26 @@ describe("schemas", () => {
   });
 
   it("validates report decisions", () => {
-    expect(reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "remove" }).success).toBe(true);
-    expect(reportActionSchema.safeParse({ kind: "profile", targetId: id, decision: "remove" }).success).toBe(false);
-    expect(reportActionSchema.safeParse({ kind: "post", targetId: "not-a-uuid", decision: "remove" }).success).toBe(false);
-    expect(reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "delete" }).success).toBe(false);
+    const reportIds = id;
+    expect(reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "remove", reportIds }).success).toBe(true);
+    expect(reportActionSchema.safeParse({ kind: "profile", targetId: id, decision: "remove", reportIds }).success).toBe(false);
+    expect(
+      reportActionSchema.safeParse({ kind: "post", targetId: "not-a-uuid", decision: "remove", reportIds }).success,
+    ).toBe(false);
+    expect(reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "delete", reportIds }).success).toBe(false);
+  });
+
+  it("closes only the reports that were shown", () => {
+    const other = "00000000-0000-4000-8000-000000000002";
+    expect(
+      reportActionSchema.parse({ kind: "post", targetId: id, decision: "dismiss", reportIds: `${id},${other}` }).reportIds,
+    ).toEqual([id, other]);
+    expect(reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "dismiss", reportIds: "" }).success).toBe(
+      false,
+    );
+    expect(
+      reportActionSchema.safeParse({ kind: "post", targetId: id, decision: "dismiss", reportIds: "nope" }).success,
+    ).toBe(false);
   });
 
   it("validates roles", () => {

@@ -11,6 +11,11 @@ export const contentActionSchema = z.object({
 
 export const reportActionSchema = contentActionSchema.extend({
   decision: z.enum(["remove", "dismiss", "resolve", "restore"]),
+  /** Only the reports the moderator was shown are closed. */
+  reportIds: z
+    .string()
+    .transform((value) => value.split(",").filter(Boolean))
+    .pipe(z.array(id).min(1).max(200)),
 });
 
 export const createInviteSchema = z.object({

@@ -17,7 +17,7 @@ export function ReportList({ reports, timeZone }: { reports: ReportItem[]; timeZ
   return (
     <ul className="flex flex-col gap-3" aria-label="Open reports">
       {reports.map((report) => {
-        const fields = { kind: report.kind, targetId: report.id };
+        const fields = { kind: report.kind, targetId: report.id, reportIds: report.reportIds.join(",") };
         const what = report.kind === "post" ? "Post" : "Comment";
         return (
           <li key={`${report.kind}:${report.id}`}>

@@ -50,12 +50,13 @@ export async function decideReport(_prev: ActionState, formData: FormData): Prom
     kind: formData.get("kind"),
     targetId: formData.get("targetId"),
     decision: formData.get("decision"),
+    reportIds: formData.get("reportIds"),
   });
   if (!parsed.success) return { status: "error", message: TRY_AGAIN };
   const { supabase, allowed } = await signedInModerator();
   if (!allowed) return { status: "error", message: "Only moderators can do this." };
 
-  const { kind, targetId, decision } = parsed.data;
+  const { kind, targetId, decision, reportIds } = parsed.data;
   if (decision === "remove" || decision === "restore") {
     const { error } = await setRemoved(supabase, kind, targetId, decision === "remove");
     if (error) return { status: "error", message: TRY_AGAIN };
@@ -65,6 +66,7 @@ export async function decideReport(_prev: ActionState, formData: FormData): Prom
   const { error } = await supabase
     .from("reports")
     .update({ status })
+    .in("id", reportIds)
     .eq(kind === "post" ? "post_id" : "comment_id", targetId)
     .eq("status", "open");
   if (error) return { status: "error", message: TRY_AGAIN };
