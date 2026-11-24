@@ -18,12 +18,12 @@ export function formatTrigger(trigger: string): string {
 
 /** Formats a YYYY-MM-DD date as e.g. "Mon 23 Nov" without shifting it by time zone. */
 export function formatCheckInDate(date: string): string {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
-    timeZone: "UTC",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" })
+      .formatToParts(new Date(`${date}T00:00:00Z`))
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.weekday} ${parts.day} ${parts.month}`;
 }
 
 export function cleanLabel(clean: boolean): string {
