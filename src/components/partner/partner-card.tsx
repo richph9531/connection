@@ -11,7 +11,7 @@ export function PartnerCard({ partner }: { partner: ActivePartner }) {
     <Card data-testid="partner-card">
       <CardHeader>
         <CardTitle>
-          <h2>{partner.otherName}</h2>
+          <h2 className="[overflow-wrap:anywhere]">{partner.otherName}</h2>
         </CardTitle>
         <CardDescription>Your accountability partner</CardDescription>
       </CardHeader>

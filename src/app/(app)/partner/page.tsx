@@ -33,7 +33,7 @@ export default async function PartnerPage() {
               {incoming.map((request) => (
                 <li key={request.id} className="flex flex-col gap-2" data-testid="incoming-request">
                   <p className="text-sm">
-                    <span className="font-medium">{request.otherName}</span> would like to be your accountability
+                    <span className="font-medium [overflow-wrap:anywhere]">{request.otherName}</span> would like to be your accountability
                     partner.
                   </p>
                   <RespondButtons partnershipId={request.id} name={request.otherName} />
@@ -60,7 +60,7 @@ export default async function PartnerPage() {
               {outgoing.map((request) => (
                 <li key={request.id} className="flex items-center justify-between gap-2" data-testid="outgoing-request">
                   <p className="min-w-0 text-sm">
-                    Waiting for <span className="font-medium break-words">{request.otherName}</span> to answer.
+                    Waiting for <span className="font-medium [overflow-wrap:anywhere]">{request.otherName}</span> to answer.
                   </p>
                   <CancelRequestButton partnershipId={request.id} name={request.otherName} />
                 </li>
