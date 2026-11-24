@@ -45,9 +45,9 @@ export async function shareMilestone(_prev: ShareState, formData: FormData): Pro
 export async function dismissMilestone(formData: FormData): Promise<void> {
   const days = Number(formData.get("days"));
   if (!isMilestone(days)) return;
-  const { profile } = await requireProfile();
+  const { user, profile } = await requireProfile();
   const cookieStore = await cookies();
-  cookieStore.set(DISMISS_COOKIE, dismissKey(profile.recovery_start_date!, days), {
+  cookieStore.set(DISMISS_COOKIE, dismissKey(user.id, profile.recovery_start_date!, days), {
     path: "/streak",
     httpOnly: true,
     sameSite: "lax",

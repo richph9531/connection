@@ -29,6 +29,7 @@ export default async function StreakPage({ searchParams }: { searchParams: Promi
   ]);
 
   const offer = milestoneToOffer({
+    userId: user.id,
     streak,
     recoveryStartDate: start,
     timeZone: profile.timezone,

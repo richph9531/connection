@@ -2,8 +2,8 @@ import { latestMilestone, sharedInCurrentStreak } from "./streak";
 
 export const DISMISS_COOKIE = "connection-milestone-dismissed";
 
-export function dismissKey(recoveryStartDate: string, days: number): string {
-  return `${recoveryStartDate}:${days}`;
+export function dismissKey(userId: string, recoveryStartDate: string, days: number): string {
+  return `${userId}:${recoveryStartDate}:${days}`;
 }
 
 /**
@@ -11,6 +11,7 @@ export function dismissKey(recoveryStartDate: string, days: number): string {
  * Null if no milestone is reached yet or the member said "not now" to sharing it.
  */
 export function milestoneToOffer(opts: {
+  userId: string;
   streak: number;
   recoveryStartDate: string;
   timeZone: string;
@@ -20,6 +21,6 @@ export function milestoneToOffer(opts: {
   const days = latestMilestone(opts.streak);
   if (days === null) return null;
   const shared = sharedInCurrentStreak(opts.sharedPostTimes, opts.recoveryStartDate, opts.timeZone);
-  if (!shared && opts.dismissed === dismissKey(opts.recoveryStartDate, days)) return null;
+  if (!shared && opts.dismissed === dismissKey(opts.userId, opts.recoveryStartDate, days)) return null;
   return { days, shared };
 }
