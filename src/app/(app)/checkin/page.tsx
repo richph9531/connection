@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckInForm } from "@/components/checkin/checkin-form";
 import { RelapseSupport } from "@/components/checkin/relapse-support";
 import { formatDay } from "@/lib/checkin/days";
-import { rowToFormValues } from "@/lib/checkin/rows";
+import { rowToFormValues, type CheckInRow } from "@/lib/checkin/rows";
 import { todayIn } from "@/lib/dates";
 import { requireProfile } from "@/lib/profile";
 import { restartStreak, saveCheckIn } from "./actions";
@@ -10,7 +10,7 @@ import { restartStreak, saveCheckIn } from "./actions";
 export default async function CheckInPage() {
   const { supabase, user, profile } = await requireProfile();
   const today = todayIn(profile.timezone);
-  const { data: checkIn } = await supabase
+  const { data: checkIn, error } = await supabase
     .from("check_ins")
     .select("clean, mood, urge_level, triggers, note, share_with_partner")
     .eq("user_id", user.id)
@@ -29,11 +29,34 @@ export default async function CheckInPage() {
         </Link>
       </div>
 
-      {checkIn && !checkIn.clean && (
-        <RelapseSupport
+      {error ? (
+        <p role="alert" className="rounded-lg bg-muted p-3 text-sm">
+          We couldn&apos;t load today&apos;s check-in just now. Please refresh the page to try again.
+        </p>
+      ) : (
+        <CheckInSection
+          checkIn={checkIn}
+          today={today}
           streakStartsToday={(profile.recovery_start_date ?? today) >= today}
-          restartStreak={restartStreak}
         />
+      )}
+    </div>
+  );
+}
+
+function CheckInSection({
+  checkIn,
+  today,
+  streakStartsToday,
+}: {
+  checkIn: CheckInRow | null;
+  today: string;
+  streakStartsToday: boolean;
+}) {
+  return (
+    <>
+      {checkIn && !checkIn.clean && (
+        <RelapseSupport streakStartsToday={streakStartsToday} restartStreak={restartStreak} />
       )}
 
       <p className="text-sm text-muted-foreground">
@@ -42,7 +65,7 @@ export default async function CheckInPage() {
           : "How did today go? This takes less than a minute."}
       </p>
 
-      <CheckInForm action={saveCheckIn} initial={checkIn ? rowToFormValues(checkIn) : null} />
-    </div>
+      <CheckInForm action={saveCheckIn} date={today} initial={checkIn ? rowToFormValues(checkIn) : null} />
+    </>
   );
 }
