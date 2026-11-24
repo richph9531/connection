@@ -12,7 +12,7 @@ test("help and privacy pages are public and linked from the footer", async ({ pa
   await page.getByRole("contentinfo").getByRole("link", { name: "Get help now" }).click();
   await expect(page.getByRole("heading", { name: "Get help now" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "If you are in danger right now" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Call 988" }).first()).toHaveAttribute("href", "tel:988");
+  await expect(page.getByRole("link", { name: "Call 0800 567 567" })).toHaveAttribute("href", "tel:0800567567");
   const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(hasHorizontalScroll).toBe(false);
 });
