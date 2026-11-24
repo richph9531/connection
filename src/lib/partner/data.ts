@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
-import { todayIn } from "@/lib/dates";
+import { isValidTimeZone, todayIn } from "@/lib/dates";
 import {
   groupPartnerships,
   OPEN_STATUSES,
@@ -48,7 +48,8 @@ async function loadActivePartner(supabase: Client, link: PartnerLink): Promise<A
     .select("recovery_start_date, longest_streak, timezone")
     .eq("id", link.otherId)
     .maybeSingle();
-  const today = todayIn(profile?.timezone ?? "UTC");
+  const timezone = profile?.timezone && isValidTimeZone(profile.timezone) ? profile.timezone : "UTC";
+  const today = todayIn(timezone);
   const { data: checkIns } = await supabase.rpc("partner_check_ins", {
     partner: link.otherId,
     since: addDays(today, -(SHARED_DAYS - 1)),
