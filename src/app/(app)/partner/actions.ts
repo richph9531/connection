@@ -37,11 +37,14 @@ export async function requestPartner(_prev: PartnerActionState, formData: FormDa
   const { displayName } = parsed.data;
 
   const { supabase, me } = await signedIn();
-  const { data: matches } = await supabase
+  const { data: exact } = await supabase
     .from("member_directory")
     .select("id, display_name")
-    .ilike("display_name", escapeLike(displayName))
-    .limit(5);
+    .eq("display_name", displayName)
+    .limit(1);
+  const { data: matches } = exact?.length
+    ? { data: exact }
+    : await supabase.from("member_directory").select("id, display_name").ilike("display_name", escapeLike(displayName));
   const member = pickMember(matches ?? [], displayName);
   if (!member?.id) return failure(REQUEST_MESSAGES["not-found"]);
 
