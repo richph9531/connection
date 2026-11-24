@@ -323,6 +323,9 @@ isOneToOne: false
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"is_member":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "is_moderator":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
