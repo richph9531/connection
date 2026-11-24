@@ -15,7 +15,8 @@ export function OnboardingForm() {
 
   useEffect(() => {
     const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setZones(Intl.supportedValuesOf("timeZone"));
+    const listed = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
+    setZones(listed);
     setTimezone(deviceZone);
     setRecoveryStartDate(todayIn(deviceZone));
   }, []);
