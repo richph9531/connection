@@ -1,7 +1,7 @@
 -- Row level security tests. Run with: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 -- Helpers to act as a given user.
 create or replace function pg_temp.login_as(uid uuid) returns void language sql as $$
@@ -29,6 +29,12 @@ select throws_ok(
   'P0001', null, 'an invite code can only be used once'
 );
 select is((select count(*)::int from public.profiles), 3, 'profiles are created on signup');
+
+insert into public.invites (code) values ('TEST-DEL');
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000de', 'del@test.dev', '{"invite_code":"TEST-DEL"}');
+delete from auth.users where id = '00000000-0000-0000-0000-0000000000de';
+select is(public.check_invite('TEST-DEL'), false, 'deleting a member does not reactivate their invite');
 
 update public.profiles set display_name = 'Alice', recovery_start_date = current_date - 10 where id = '00000000-0000-0000-0000-00000000000a';
 update public.profiles set display_name = 'Bob', recovery_start_date = current_date - 3 where id = '00000000-0000-0000-0000-00000000000b';
@@ -64,7 +70,7 @@ select throws_ok($$ select public.set_post_removed((select id from public.posts 
 -- Moderator
 select pg_temp.login_as('00000000-0000-0000-0000-00000000000c');
 select lives_ok($$ select public.set_post_removed((select id from public.posts limit 1), true) $$, 'moderators can remove posts');
-select is((select count(*)::int from public.invites where code like 'TEST-%'), 4, 'moderators can read invites');
+select is((select count(*)::int from public.invites where code like 'TEST-%'), 5, 'moderators can read invites');
 
 -- Bob again: removed posts are hidden
 select pg_temp.login_as('00000000-0000-0000-0000-00000000000b');

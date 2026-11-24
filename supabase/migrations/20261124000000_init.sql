@@ -122,7 +122,7 @@ create function public.check_invite(invite_code text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (
     select 1 from public.invites
-    where code = invite_code and used_by is null and expires_at > now()
+    where code = invite_code and used_at is null and expires_at > now()
   );
 $$;
 
@@ -134,7 +134,7 @@ declare
 begin
   if invite_code is null or not exists (
     select 1 from public.invites
-    where code = invite_code and used_by is null and expires_at > now()
+    where code = invite_code and used_at is null and expires_at > now()
     for update
   ) then
     raise exception 'A valid invite code is required to join Connection';
@@ -295,9 +295,9 @@ create policy "Update own profile" on public.profiles for update to authenticate
 create policy "Moderators read invites" on public.invites for select to authenticated
   using (public.is_moderator());
 create policy "Moderators create invites" on public.invites for insert to authenticated
-  with check (public.is_moderator() and created_by = auth.uid() and used_by is null);
+  with check (public.is_moderator() and created_by = auth.uid() and used_by is null and used_at is null);
 create policy "Moderators delete unused invites" on public.invites for delete to authenticated
-  using (public.is_moderator() and used_by is null);
+  using (public.is_moderator() and used_at is null);
 
 create policy "Own check-ins" on public.check_ins for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
