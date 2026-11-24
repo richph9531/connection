@@ -9,6 +9,12 @@ describe("postBodySchema", () => {
     expect(postBodySchema.safeParse("a".repeat(2000)).success).toBe(true);
   });
 
+  it("counts browser line breaks (CRLF) as one character", () => {
+    const body = `${"a".repeat(999)}\r\n${"b".repeat(1000)}`;
+    expect(postBodySchema.parse(body)).toBe(`${"a".repeat(999)}\n${"b".repeat(1000)}`);
+    expect(commentBodySchema.parse("one\r\ntwo")).toBe("one\ntwo");
+  });
+
   it("rejects empty and overlong posts", () => {
     expect(postBodySchema.safeParse("   ").success).toBe(false);
     expect(postBodySchema.safeParse("a".repeat(2001)).success).toBe(false);
