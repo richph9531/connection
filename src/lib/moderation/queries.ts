@@ -75,20 +75,19 @@ export async function loadOpenReports(supabase: Client): Promise<ReportItem[]> {
   });
 }
 
-export async function loadRemovedContent(supabase: Client, limit = 20): Promise<RemovedItem[]> {
+/** All removed content, so anything can still be restored (a small community keeps this list short). */
+export async function loadRemovedContent(supabase: Client): Promise<RemovedItem[]> {
   const [posts, comments] = await Promise.all([
     supabase
       .from("posts")
       .select("id, body, author_id, removed_at")
       .not("removed_at", "is", null)
-      .order("removed_at", { ascending: false })
-      .limit(limit),
+      .order("removed_at", { ascending: false }),
     supabase
       .from("comments")
       .select("id, body, author_id, removed_at")
       .not("removed_at", "is", null)
-      .order("removed_at", { ascending: false })
-      .limit(limit),
+      .order("removed_at", { ascending: false }),
   ]);
   const rows = [
     ...(posts.data ?? []).map((row) => ({ ...row, kind: "post" as const })),
@@ -106,8 +105,7 @@ export async function loadRemovedContent(supabase: Client, limit = 20): Promise<
       authorName: names.get(row.author_id) ?? FORMER_MEMBER,
       removedAt: row.removed_at!,
     }))
-    .sort((a, b) => b.removedAt.localeCompare(a.removedAt))
-    .slice(0, limit);
+    .sort((a, b) => b.removedAt.localeCompare(a.removedAt));
 }
 
 export async function loadInvites(supabase: Client): Promise<InviteItem[]> {
