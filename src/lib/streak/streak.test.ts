@@ -134,6 +134,8 @@ describe("calendar", () => {
   it("moves between months", () => {
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftMonth("2026-12", 1)).toBe("2027-01");
+    expect(shiftMonth("0050-01", 1)).toBe("0050-02");
+    expect(monthGrid("0050-01").flat().filter(Boolean)).toHaveLength(31);
     expect(monthBounds("2028-02")).toEqual({ first: "2028-02-01", last: "2028-02-29" });
   });
 

@@ -103,7 +103,8 @@ export function resolveMonth(requested: string | undefined, today: string): stri
 
 export function shiftMonth(month: string, delta: number): string {
   const [year, m] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(year, m - 1 + delta, 1));
+  const d = new Date(0);
+  d.setUTCFullYear(year, m - 1 + delta, 1);
   return d.toISOString().slice(0, 7);
 }
 
