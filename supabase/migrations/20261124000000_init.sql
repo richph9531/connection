@@ -280,6 +280,9 @@ revoke insert, delete on public.profiles from authenticated;
 revoke update on public.posts, public.comments from authenticated;
 grant update (body) on public.posts, public.comments to authenticated;
 
+revoke update on public.reports from authenticated;
+grant update (status) on public.reports to authenticated;
+
 revoke update on public.partnerships from authenticated;
 grant update (status) on public.partnerships to authenticated;
 

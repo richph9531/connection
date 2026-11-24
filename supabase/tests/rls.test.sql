@@ -1,7 +1,7 @@
 -- Row level security tests. Run with: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(28);
 
 -- Helpers to act as a given user.
 create or replace function pg_temp.login_as(uid uuid) returns void language sql as $$
@@ -54,6 +54,7 @@ insert into public.posts (author_id, body) values (auth.uid(), 'Day 10, feeling 
 insert into public.comments (post_id, author_id, body) select id, auth.uid(), 'Thanks all' from public.posts;
 insert into public.reactions (post_id, user_id, kind) select id, auth.uid(), 'support' from public.posts;
 select throws_ok($$ insert into public.posts (author_id, body) values ('00000000-0000-0000-0000-00000000000b', 'spoof') $$, '42501', null, 'members cannot post as someone else');
+insert into public.reports (post_id, reporter_id, reason) select id, auth.uid(), 'test report' from public.posts;
 insert into public.partnerships (requester_id, partner_id) values (auth.uid(), '00000000-0000-0000-0000-00000000000b');
 select throws_ok($$ update public.partnerships set status = 'active' $$, 'P0001', null, 'requester cannot accept their own request');
 
@@ -73,6 +74,8 @@ select throws_ok($$ select public.set_post_removed((select id from public.posts 
 select pg_temp.login_as('00000000-0000-0000-0000-00000000000c');
 select lives_ok($$ select public.set_post_removed((select id from public.posts limit 1), true) $$, 'moderators can remove posts');
 select is((select count(*)::int from public.invites where code like 'TEST-%'), 5, 'moderators can read invites');
+select throws_ok($$ update public.reports set reason = 'edited' $$, '42501', null, 'moderators cannot rewrite reports');
+select lives_ok($$ update public.reports set status = 'resolved' $$, 'moderators can resolve reports');
 
 -- Bob again: removed posts are hidden
 select pg_temp.login_as('00000000-0000-0000-0000-00000000000b');
