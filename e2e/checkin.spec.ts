@@ -57,3 +57,17 @@ test("check-in pages for other days are not found", async ({ page }) => {
   const invalid = await page.goto("/checkin/not-a-date");
   expect(invalid?.status()).toBe(404);
 });
+
+test("a form left open from a previous day is not saved onto today", async ({ page }) => {
+  await joinAsNewMember(page);
+  await page.goto("/checkin");
+  await page.getByText("Yes", { exact: true }).click();
+  await page.getByLabel("Good").check({ force: true });
+  await page.locator('input[name="date"]').evaluate((input: HTMLInputElement) => {
+    input.value = "2001-01-01";
+  });
+  await page.getByRole("button", { name: "Save check-in" }).click();
+  await expect(page.getByText(/A new day has started/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Save check-in" })).toBeVisible();
+});
