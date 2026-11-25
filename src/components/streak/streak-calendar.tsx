@@ -10,7 +10,7 @@ const STATUS: Record<DayStatus, { label: string; className: string }> = {
   clean: { label: "Clean day", className: "bg-emerald-500 text-white" },
   "fresh-start": { label: "Fresh start", className: "bg-amber-200 text-amber-950" },
   none: { label: "No check-in", className: "bg-muted text-foreground" },
-  future: { label: "Coming up", className: "text-muted-foreground/50" },
+  future: { label: "Coming up", className: "text-muted-foreground" },
 };
 
 const LEGEND: DayStatus[] = ["clean", "fresh-start", "none"];
