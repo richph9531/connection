@@ -4,6 +4,7 @@ export type ReportRow = {
   comment_id: string | null;
   reason: string;
   created_at: string;
+  reported_author_id: string | null;
 };
 
 export type ReportTarget = { kind: "post" | "comment"; id: string };
@@ -12,6 +13,7 @@ export type ReportGroup = ReportTarget & {
   reportIds: string[];
   reasons: string[];
   firstReportedAt: string;
+  authorId: string | null;
 };
 
 export function reportTarget(report: Pick<ReportRow, "post_id" | "comment_id">): ReportTarget | null {
@@ -29,7 +31,13 @@ export function groupReports(reports: ReportRow[]): ReportGroup[] {
     const key = `${target.kind}:${target.id}`;
     const group = groups.get(key);
     if (!group) {
-      groups.set(key, { ...target, reportIds: [report.id], reasons: [report.reason], firstReportedAt: report.created_at });
+      groups.set(key, {
+        ...target,
+        reportIds: [report.id],
+        reasons: [report.reason],
+        firstReportedAt: report.created_at,
+        authorId: report.reported_author_id,
+      });
       continue;
     }
     group.reportIds.push(report.id);

@@ -43,3 +43,8 @@ export async function joinWithInvite(page: Page, inviteCode: string, displayName
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/checkin/);
 }
+
+/** The author deletes their own post, as they could from the feed. */
+export function deletePost(body: string) {
+  sql("delete from public.posts where body = :'body';", { body });
+}

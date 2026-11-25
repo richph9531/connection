@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { joinAsNewMember } from "./helpers";
-import { createReportedPost, joinWithInvite, setRole } from "./moderation-helpers";
+import { createReportedPost, deletePost, joinWithInvite, setRole } from "./moderation-helpers";
 
 test.use({ viewport: { width: 375, height: 812 } });
 
@@ -64,4 +64,24 @@ test("an admin reviews a report, manages invites and changes a member's role", a
   await expect(authorPage.getByRole("link", { name: "Invites" })).toBeVisible();
   await expect(authorPage.getByRole("link", { name: "Members" })).toHaveCount(0);
   await authorPage.close();
+});
+
+test("a report stays open after the author deletes the post", async ({ browser, page }) => {
+  const suffix = Date.now() % 1e6;
+  const authorPage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+  const { displayName: author } = await joinAsNewMember(authorPage, `Deleter ${suffix}`);
+  await authorPage.close();
+  const { displayName: mod } = await joinAsNewMember(page, `Mod ${suffix}`);
+  setRole(mod, "moderator");
+  const reason = `Hurtful ${suffix}`;
+  createReportedPost(author, mod, `Soon deleted ${suffix}`, reason);
+  deletePost(`Soon deleted ${suffix}`);
+
+  await page.goto("/moderation");
+  const report = page.getByTestId("report").filter({ hasText: reason });
+  await expect(report).toContainText(`Post by ${author}`);
+  await expect(report).toContainText("Deleted by author");
+  await expect(report).toContainText("The author deleted this after it was reported.");
+  await report.getByRole("button", { name: "Close report" }).click();
+  await expect(page.getByTestId("report").filter({ hasText: reason })).toHaveCount(0);
 });

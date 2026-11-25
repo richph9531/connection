@@ -10,6 +10,8 @@ export type ReportItem = ReportGroup & {
   body: string | null;
   authorName: string;
   removedAt: string | null;
+  /** The author deleted the content after it was reported. */
+  deleted: boolean;
 };
 
 export type RemovedItem = {
@@ -37,7 +39,7 @@ async function displayNames(supabase: Client, ids: (string | null)[]): Promise<M
 export async function loadOpenReports(supabase: Client): Promise<ReportItem[]> {
   const { data: reports, error } = await supabase
     .from("reports")
-    .select("id, post_id, comment_id, reason, created_at")
+    .select("id, post_id, comment_id, reason, created_at, reported_author_id")
     .eq("status", "open")
     .order("created_at", { ascending: true })
     .limit(200);
@@ -61,7 +63,7 @@ export async function loadOpenReports(supabase: Client): Promise<ReportItem[]> {
 
   const names = await displayNames(
     supabase,
-    [...content.values()].map((row) => row.author_id),
+    groups.map((group) => group.authorId),
   );
 
   return groups.map((group) => {
@@ -69,8 +71,9 @@ export async function loadOpenReports(supabase: Client): Promise<ReportItem[]> {
     return {
       ...group,
       body: row?.body ?? null,
-      authorName: (row && names.get(row.author_id)) ?? FORMER_MEMBER,
+      authorName: (group.authorId && names.get(group.authorId)) ?? FORMER_MEMBER,
       removedAt: row?.removed_at ?? null,
+      deleted: !row,
     };
   });
 }

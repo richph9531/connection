@@ -7,6 +7,7 @@ const report = (id: string, target: { post_id?: string; comment_id?: string }, c
   comment_id: target.comment_id ?? null,
   reason,
   created_at,
+  reported_author_id: "author",
 });
 
 describe("reportTarget", () => {

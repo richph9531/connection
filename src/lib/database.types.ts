@@ -255,27 +255,27 @@ isOneToOne: false
                   ]
                 },"reports": {
                   Row: {
-                    "comment_id": string | null,"created_at": string,"id": string,"post_id": string | null,"reason": string,"reporter_id": string,"status": Database["public"]['Enums']["report_status"]
+                    "comment_id": string | null,"created_at": string,"id": string,"post_id": string | null,"reason": string,"reported_author_id": string | null,"reporter_id": string,"status": Database["public"]['Enums']["report_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason": string,"reporter_id": string,"status"?: Database["public"]['Enums']["report_status"]
+                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason": string,"reported_author_id"?: string | null,"reporter_id": string,"status"?: Database["public"]['Enums']["report_status"]
                   }
                   Update: {
-                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason"?: string,"reporter_id"?: string,"status"?: Database["public"]['Enums']["report_status"]
+                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason"?: string,"reported_author_id"?: string | null,"reporter_id"?: string,"status"?: Database["public"]['Enums']["report_status"]
                   }
                   Relationships: [
                     {
-      foreignKeyName: "reports_comment_id_fkey"
-      columns: ["comment_id"]
+      foreignKeyName: "reports_reported_author_id_fkey"
+      columns: ["reported_author_id"]
 isOneToOne: false
-      referencedRelation: "comments"
+      referencedRelation: "member_directory"
       referencedColumns: ["id"]
     },{
-      foreignKeyName: "reports_post_id_fkey"
-      columns: ["post_id"]
+      foreignKeyName: "reports_reported_author_id_fkey"
+      columns: ["reported_author_id"]
 isOneToOne: false
-      referencedRelation: "posts"
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "reports_reporter_id_fkey"
