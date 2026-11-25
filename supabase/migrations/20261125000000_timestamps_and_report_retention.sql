@@ -81,3 +81,6 @@ create policy "Create reports" on public.reports for insert to authenticated
       or exists (select 1 from public.comments c where c.id = comment_id and c.removed_at is null)
     )
   );
+
+revoke execute on function public.stamp_created_at(), public.set_reported_author(), public.block_reported_id_reuse()
+  from public, anon, authenticated;
