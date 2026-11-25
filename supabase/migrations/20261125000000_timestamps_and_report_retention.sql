@@ -50,6 +50,27 @@ $$;
 create trigger reports_set_reported_author before insert on public.reports
   for each row execute function public.set_reported_author();
 
+-- A deleted post or comment's id cannot be reused while reports point at it,
+-- so new content can never stand in for what was reported.
+create function public.block_reported_id_reuse() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if exists (
+    select 1 from public.reports r
+    where (tg_table_name = 'posts' and r.post_id = new.id)
+       or (tg_table_name = 'comments' and r.comment_id = new.id)
+  ) then
+    raise exception 'This id belongs to reported content' using errcode = '23505';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger posts_block_reported_id_reuse before insert on public.posts
+  for each row execute function public.block_reported_id_reuse();
+create trigger comments_block_reported_id_reuse before insert on public.comments
+  for each row execute function public.block_reported_id_reuse();
+
 -- Members can only report content they can currently see.
 drop policy "Create reports" on public.reports;
 create policy "Create reports" on public.reports for insert to authenticated

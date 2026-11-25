@@ -1,7 +1,7 @@
 -- Timestamp integrity and report retention. Run with: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 create or replace function pg_temp.login_as(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -52,6 +52,16 @@ select throws_ok(
 select pg_temp.login_as('00000000-0000-0000-0000-00000000e0a1');
 delete from public.posts where id = '00000000-0000-0000-0000-00000000e0f1';
 select is((select count(*)::int from public.reports), 0, 'authors still cannot see reports about their content');
+select throws_ok(
+  $$ insert into public.posts (id, author_id, body) values ('00000000-0000-0000-0000-00000000e0f1', auth.uid(), 'swapped') $$,
+  '23505', null, 'a reported post''s id cannot be reused'
+);
+insert into public.posts (id, author_id, body) values ('00000000-0000-0000-0000-00000000e0f2', auth.uid(), 'new post');
+select throws_ok(
+  $$ insert into public.comments (id, post_id, author_id, body) values
+     ('00000000-0000-0000-0000-00000000e0e1', '00000000-0000-0000-0000-00000000e0f2', auth.uid(), 'swapped') $$,
+  '23505', null, 'a reported comment''s id cannot be reused'
+);
 
 select pg_temp.login_as('00000000-0000-0000-0000-00000000e0c0');
 select is((select count(*)::int from public.reports where status = 'open'), 2,
