@@ -29,12 +29,13 @@ export function ReportList({ reports, timeZone }: { reports: ReportItem[]; timeZ
                   </span>
                   <Badge variant="secondary">{plural(report.reportIds.length, "report")}</Badge>
                   {report.removedAt && <Badge variant="outline">Already removed</Badge>}
+                  {report.deleted && <Badge variant="outline">Deleted by author</Badge>}
                 </CardTitle>
                 <CardDescription>First reported {formatDate(report.firstReportedAt, timeZone)}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
                 <blockquote className="whitespace-pre-wrap break-words rounded-md border-l-4 border-muted-foreground/30 bg-muted/50 p-3">
-                  {report.body ?? "This content is no longer available."}
+                  {report.body ?? "The author deleted this after it was reported."}
                 </blockquote>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Why members reported it</p>
@@ -47,7 +48,15 @@ export function ReportList({ reports, timeZone }: { reports: ReportItem[]; timeZ
                   </ul>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {report.removedAt ? (
+                  {report.deleted ? (
+                    <ActionButton
+                      action={decideReport}
+                      fields={{ ...fields, decision: "resolve" }}
+                      label="Close report"
+                      pendingLabel="Saving…"
+                      variant="default"
+                    />
+                  ) : report.removedAt ? (
                     <>
                       <ActionButton
                         action={decideReport}

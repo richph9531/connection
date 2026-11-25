@@ -76,7 +76,7 @@ Language: English. Works well on phones (most members will use it on mobile).
 - `comments` (id, post_id, author_id, body, created_at, removed_at, removed_by)
 - `reactions` (post_id, user_id, kind; primary key on all three)
 - `partnerships` (id, requester_id, partner_id, status pending|active|declined|ended, created_at)
-- `reports` (id, post_id or comment_id, reporter_id, reason, status open|resolved|dismissed, created_at)
+- `reports` (id, post_id or comment_id, reporter_id, reported_author_id, reason, status open|resolved|dismissed, created_at). Reports stay after the author deletes the content, and are removed when that author deletes their account. `created_at` is always set by the database.
 
 ## Out of scope for MVP
 Direct messages, push notifications, file/image uploads, multiple languages, native mobile apps.
